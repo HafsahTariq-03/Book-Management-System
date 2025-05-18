@@ -133,7 +133,7 @@ pipeline {
             
             // Archive artifacts and test results if available
             archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
-            junit '**/target/surefire-reports/*.xml', allowEmptyResults: true
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
         }
         
         success {
