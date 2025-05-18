@@ -43,17 +43,12 @@ const Home = () => {
           Card
         </button>
       </div>
-
       <div className='flex justify-between items-center'>
         <h1 className='text-3xl my-8'>Books List</h1>
         <Link to='/books/create'>
           <MdOutlineAddBox className='text-sky-800 text-4xl' />
         </Link>
       </div>
-
-      {/* Temporary test line */}
-      <p className="text-center text-lg text-gray-600">Hello, World!</p>
-
       {loading ? (
         <Spinner />
       ) : showType === 'table' ? (
@@ -65,4 +60,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Home; 
