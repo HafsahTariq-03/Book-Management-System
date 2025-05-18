@@ -21,6 +21,7 @@ pipeline {
 NODE_ENV=production
 PORT=5555
 MONGODB_URI=${MONGODB_URI}
+JWT_EXPIRATION=24h
 EOF
                 '''
             }
@@ -54,4 +55,4 @@ EOF
             archiveArtifacts artifacts: 'docker-compose.log', allowEmptyArchive: true
         }
     }
-}
+} 
