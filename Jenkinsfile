@@ -21,6 +21,7 @@ pipeline {
 NODE_ENV=production
 PORT=5555
 MONGODB_URI=${MONGODB_URI}
+JWT_EXPIRATION=24h
 EOF
                 '''
             }
@@ -30,7 +31,7 @@ EOF
             steps {
                 sh 'docker-compose -p ${DOCKER_COMPOSE_PROJECT} -f ${DOCKER_COMPOSE_FILE} build'
                 sh 'docker-compose -p ${DOCKER_COMPOSE_PROJECT} -f ${DOCKER_COMPOSE_FILE} up -d'
-                // Optionally capture logs for artifact archiving
+                // Capture logs for artifact archiving
                 sh 'docker-compose -p ${DOCKER_COMPOSE_PROJECT} -f ${DOCKER_COMPOSE_FILE} logs > docker-compose.log || true'
             }
         }
@@ -42,20 +43,23 @@ EOF
                 sh 'curl -s http://localhost:5002 || true'
             }
         }
-    }
-    
-    post {
-        success {
-            echo 'Deployment successful!'
-        }
-        failure {
-            echo 'Deployment failed!'
-            sh 'docker-compose -p ${DOCKER_COMPOSE_PROJECT} -f ${DOCKER_COMPOSE_FILE} down || true'
-        }
-        always {
-            // Create an empty log file if it doesn't exist to avoid archiving errors
-            sh 'touch docker-compose.log || true'
-            archiveArtifacts artifacts: 'docker-compose.log', allowEmptyArchive: true
+        
+        // Add a cleanup stage that will also archive artifacts
+        stage('Post Actions') {
+            steps {
+                script {
+                    currentBuild.result = currentBuild.result ?: 'SUCCESS'
+                    if (currentBuild.result == 'FAILURE') {
+                        echo 'Deployment failed!'
+                        sh 'docker-compose -p ${DOCKER_COMPOSE_PROJECT} -f ${DOCKER_COMPOSE_FILE} down || true'
+                    } else {
+                        echo 'Deployment successful!'
+                    }
+                    // This ensures the file exists for archiving
+                    sh 'touch docker-compose.log || true'
+                    archiveArtifacts artifacts: 'docker-compose.log', allowEmptyArchive: true
+                }
+            }
         }
     }
 }
