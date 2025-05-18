@@ -23,8 +23,6 @@ pipeline {
 NODE_ENV=production
 PORT=5555
 MONGODB_URI=${MONGODB_URI}
-JWT_SECRET=${JWT_SECRET}
-JWT_EXPIRATION=24h
 EOF
                 '''
             }
@@ -52,14 +50,22 @@ EOF
         success {
             echo 'Deployment successful!'
         }
+
         failure {
-            echo 'Deployment failed!'
-            sh 'docker-compose -p ${DOCKER_COMPOSE_PROJECT} -f ${DOCKER_COMPOSE_FILE} down || true'
+            node {
+                echo 'Deployment failed!'
+                sh 'docker-compose -p ${DOCKER_COMPOSE_PROJECT} -f ${DOCKER_COMPOSE_FILE} down || true'
+                sh 'echo "Deployment failed!"'
+            }
         }
+
         always {
-            // Clean up any dangling images
-            sh 'docker image prune -f'
-            archiveArtifacts artifacts: 'docker-compose.log', allowEmptyArchive: true
+            node {
+                // Clean up any dangling images
+                sh 'docker image prune -f'
+                archiveArtifacts artifacts: 'docker-compose.log', allowEmptyArchive: true
+                sh 'echo "This will always run after the pipeline"'
+            }
         }
     }
-} 
+}
