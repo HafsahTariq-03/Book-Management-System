@@ -21,7 +21,6 @@ pipeline {
 NODE_ENV=production
 PORT=5555
 MONGODB_URI=${MONGODB_URI}
-JWT_EXPIRATION=24h
 EOF
                 '''
             }
@@ -47,17 +46,16 @@ EOF
     
     post {
         success {
-            node {
-                echo 'Deployment successful!'
-                archiveArtifacts artifacts: 'docker-compose.log', allowEmptyArchive: true
-            }
+            echo 'Deployment successful!'
         }
         failure {
-            node {
-                echo 'Deployment failed!'
-                sh 'docker-compose -p ${DOCKER_COMPOSE_PROJECT} -f ${DOCKER_COMPOSE_FILE} down || true'
-                archiveArtifacts artifacts: 'docker-compose.log', allowEmptyArchive: true
-            }
+            echo 'Deployment failed!'
+            sh 'docker-compose -p ${DOCKER_COMPOSE_PROJECT} -f ${DOCKER_COMPOSE_FILE} down || true'
+        }
+        always {
+            // Create an empty log file if it doesn't exist to avoid archiving errors
+            sh 'touch docker-compose.log || true'
+            archiveArtifacts artifacts: 'docker-compose.log', allowEmptyArchive: true
         }
     }
 }
